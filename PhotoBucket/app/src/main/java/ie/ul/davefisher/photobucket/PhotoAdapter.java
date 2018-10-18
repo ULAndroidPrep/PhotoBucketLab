@@ -26,10 +26,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
   private List<DocumentSnapshot> mPhotoSnapshots = new ArrayList<>();
 
   public PhotoAdapter() {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    CollectionReference movieQuotesRef = db.collection("moviequotes");
+    CollectionReference photosRef = FirebaseFirestore.getInstance().collection("photos");
 
-    movieQuotesRef.orderBy("created", Query.Direction.DESCENDING).limit(50)
+    photosRef.orderBy("created", Query.Direction.DESCENDING).limit(50)
         .addSnapshotListener(new EventListener<QuerySnapshot>() {
           @Override
           public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
@@ -53,9 +52,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
 
   @Override
   public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
-    DocumentSnapshot mq = mPhotoSnapshots.get(position);
-    holder.mCaptionTextView.setText((String)mq.get("quote"));
-    holder.mMovieTextView.setText((String)mq.get("movie"));
+    DocumentSnapshot photo = mPhotoSnapshots.get(position);
+    holder.mCaptionTextView.setText((String)photo.get("caption"));
   }
 
   @Override
@@ -73,11 +71,11 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
       itemView.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          DocumentSnapshot mq = mPhotoSnapshots.get(getAdapterPosition());
+          DocumentSnapshot photo = mPhotoSnapshots.get(getAdapterPosition());
 
           Context context = v.getContext();
           Intent intent = new Intent(context, PhotoDetailActivity.class);
-          intent.putExtra("document_id", mq.getId());
+          intent.putExtra("document_id", photo.getId());
           context.startActivity(intent);
         }
       });

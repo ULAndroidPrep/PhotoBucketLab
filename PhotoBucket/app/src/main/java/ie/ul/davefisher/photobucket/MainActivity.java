@@ -1,8 +1,10 @@
 package ie.ul.davefisher.photobucket;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +12,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,8 +30,7 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-
-
+    
     RecyclerView recyclerView = findViewById(R.id.recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(this));
     recyclerView.setHasFixedSize(true);
@@ -34,31 +42,36 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
+        showAddDialog();
       }
     });
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.menu_main, menu);
-    return true;
-  }
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle action bar item clicks here. The action bar will
-    // automatically handle clicks on the Home/Up button, so long
-    // as you specify a parent activity in AndroidManifest.xml.
-    int id = item.getItemId();
+  private void showAddDialog() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle("Add a new Photo");
+    View view = getLayoutInflater().inflate(R.layout.photo_dialog, null, false);
+    builder.setView(view);
+    final EditText captionEditText = view.findViewById(R.id.dialog_caption_edittext);
+    final EditText imageUrlEditText = view.findViewById(R.id.dialog_image_url_edittext);
 
-    //noinspection SimplifiableIfStatement
-    if (id == R.id.action_settings) {
-      return true;
-    }
+    builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        Map<String, Object> photo = new HashMap<>();
+        photo.put("caption", captionEditText.getText().toString());
+        String imageUrl = imageUrlEditText.getText().toString();
+        if (imageUrl.isEmpty()) {
+          imageUrl = "https://www.irishcentral.com/images/FT5%20s-ivory-coast-flag%20copy.jpg";
+        }
+        photo.put("imageUrl", imageUrl);
+        photo.put("created", new Date());
+        FirebaseFirestore.getInstance().collection("photos").add(photo);
+      }
+    });
+    builder.setNegativeButton(android.R.string.cancel, null);
 
-    return super.onOptionsItemSelected(item);
+    builder.create().show();
   }
 }
